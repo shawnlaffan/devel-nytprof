@@ -27,5 +27,5 @@ build_script:
   - perl Makefile.PL
   - gmake
   #- gmake test
-  - prove -vmb t\40-savesrc.t :: -v
+  - prove -vmb t\40-savesrc.t \:\: -v
 

@@ -16,6 +16,8 @@ install:
   
   #  some debug
   - path
+  #  paranoia - does a pre-installed version get in the way
+  - cpanm Devel::NYTProf
 
 
 build_script:

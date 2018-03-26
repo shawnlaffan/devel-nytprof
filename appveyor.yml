@@ -13,6 +13,9 @@ install:
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
   
   - cpanm --installdeps --notest --with-all-features .
+  
+  #  some debug
+  - path
 
 
 build_script:

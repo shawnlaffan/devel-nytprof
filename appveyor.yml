@@ -12,6 +12,8 @@ install:
   - set PATH=%ST%\perl\bin;%ST%\perl\site\bin;%ST%\c\bin;%PATH%
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
   
+  - perl -V
+  
   - cpanm --installdeps --notest --with-all-features .
   
   #  some debug
@@ -26,6 +28,6 @@ install:
 build_script:
   - perl Makefile.PL
   - gmake
-  #- gmake test
-  - prove -vmb t\40-savesrc.t \:\: -v
+  - gmake test
+  #- prove -vmb t\40-savesrc.t \:\: -v
 

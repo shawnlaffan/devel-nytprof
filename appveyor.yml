@@ -26,5 +26,6 @@ install:
 build_script:
   - perl Makefile.PL
   - gmake
-  - gmake test
+  #- gmake test
+  - prove -vmb t\40-savesrc.t :: -v
 

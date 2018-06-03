@@ -452,10 +452,55 @@ sub is_file_content_same {
 
     my @got = slurp_file($got_file); chomp @got;
     my @exp = slurp_file($exp_file); chomp @exp;
+    
+    update_file_content_got_array (\@got);
+    @got = sort @got;
+    @exp = sort @exp;
 
     is_deeply(\@got, \@exp, $testname)
         ? unlink($got_file)
         : diff_files($exp_file, $got_file, $got_file."_patch");
+}
+
+sub update_file_content_got_array {
+    my $lines = shift;
+
+    return if $#$lines < 27;
+
+    #  Remove path info that creeps in when run under prove
+    #  Should perhaps use Regexp::Common, or borrow from it. 
+    $lines->[27] =~ s|(\w:/)?([\-\w\s]+/)+||;
+
+    return if $#$lines < 31;
+
+    my $re_eval_id = qr /\(eval ([0-9]+)\)/;
+    my $start_eval_id = 1;
+    if ($lines->[31] =~ $re_eval_id) {
+        $start_eval_id = $1;
+    };
+    return if $start_eval_id == 1;
+    
+    my $eval_id_offset = $start_eval_id - 1;
+    
+    #  now update the eval IDs for the offset
+    foreach my $i (31 .. $#$lines) {
+        if (my @matches = ($lines->[$i] =~ m/$re_eval_id/g)) {
+            foreach my $got (@matches) {
+                my $replace = $got - $eval_id_offset;
+                #  horrible hack - evals == 10 is off by 1 otherwise
+                if ($got == 10) {
+                    $replace -= 1;
+                }
+                #  no idea why this happens
+                elsif (@matches > 2 && $got == 9) {
+                    $replace += 1;
+                }
+                $lines->[$i] =~ s/\(eval $got\)/\(eval $replace\)/;
+            }
+        }
+    }
+
+    return;
 }
 
 
@@ -494,7 +539,10 @@ sub diff_files {
     # we don't care if this fails, it's just an aid to debug test failures
     # XXX needs to behave better on windows
     my @opts = split / /, $ENV{NYTPROF_DIFF_OPTS} || $diff_opts; # e.g. '-y'
-    system("diff @opts $old_file $new_file 1>&2");
+    #  can sometimes cause issues with cmd shell
+    if ($^O ne 'MSWin32') {
+        system("diff @opts $old_file $new_file 1>&2");
+    }
 }
 
 

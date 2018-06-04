@@ -503,7 +503,7 @@ sub update_file_content_array {
                     #  Correct for the alphabetical ordering
                     #  as otherwise the 10 is listed before the 9
                     #  and the line does not match exactly.
-                    #  Clunky, but works for now.
+                    #  Clunky, but works for now. 
                     if ($got == 10) {
                         $replace -= 1;
                     }

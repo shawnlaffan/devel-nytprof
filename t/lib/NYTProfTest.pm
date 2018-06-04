@@ -453,16 +453,20 @@ sub is_file_content_same {
     my @got = slurp_file($got_file); chomp @got;
     my @exp = slurp_file($exp_file); chomp @exp;
     
-    update_file_content_got_array (\@got);
-    @got = sort @got;
-    @exp = sort @exp;
+    my $updated = update_file_content_array (\@got);
+    #  Sort the got and exp data if we updated.
+    #  This avoids mismatches due to file sort orders.
+    if ($updated) {
+        @got = sort @got;
+        @exp = sort @exp;
+    }
 
     is_deeply(\@got, \@exp, $testname)
         ? unlink($got_file)
         : diff_files($exp_file, $got_file, $got_file."_patch");
 }
 
-sub update_file_content_got_array {
+sub update_file_content_array {
     my $lines = shift;
     
     my $file_info_start;
@@ -495,12 +499,14 @@ sub update_file_content_got_array {
         if (my @matches = ($lines->[$i] =~ m/$re_eval_id/g)) {
             foreach my $got (@matches) {
                 my $replace = $got - $eval_id_offset;
-                #  horrible hack - evals == 10 are off by 1 otherwise
                 if ($lines->[$i] =~ /test22-strevala.p/) {
+                    #  Correct for the alphabetical ordering
+                    #  as otherwise the 10 is listed before the 9
+                    #  and the line does not match exactly.
+                    #  Clunky, but works for now.
                     if ($got == 10) {
                         $replace -= 1;
                     }
-                    #  no idea why this happens
                     elsif (@matches > 2 && $got == 9) {
                         $replace += 1;
                     }
@@ -510,7 +516,8 @@ sub update_file_content_got_array {
         }
     }
 
-    return;
+    #  indicate changes
+    return 1;
 }
 
 
